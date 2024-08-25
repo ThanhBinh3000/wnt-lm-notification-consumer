@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import vn.com.gsoft.consumer.constant.NotificationContains;
 import vn.com.gsoft.consumer.constant.RecordStatusContains;
 import vn.com.gsoft.consumer.entity.Notification;
 import vn.com.gsoft.consumer.model.dto.NhaThuocReq;
@@ -96,6 +97,7 @@ public class NotificationServiceImpl implements NotificationService {
                             notification.setResourceID(0);
                             notification.setStoreId(0);
                             notification.setCreateDate(new Date());
+                            notification.setNotificationTypeID(NotificationContains.THONG_BAO_LIEN_MINH);
                             notificationRepository.save(notification);
                         });
                     }
