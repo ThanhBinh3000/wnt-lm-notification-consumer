@@ -46,63 +46,66 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void getDataKafka(String payload) {
         Gson gson = new Gson();
-        TypeToken<WrapData<Long>> typeToken = new TypeToken<WrapData<Long>>() {};
-        WrapData<Long> data = gson.fromJson(payload, typeToken.getType());
-        var id = data.getData();
-        sendNotificationToCS(id);
+        TypeToken<WrapData<List<Long>>> typeToken = new TypeToken<>() {};
+        WrapData<List<Long>> data = gson.fromJson(payload, typeToken.getType());
+        var ids = data.getData();
+        sendNotificationToCS(ids);
 
     }
 
     @Override
-    public void sendNotificationToCS(Long id){
-        var hanghoa = luanChuyenRepository.findById(id).get();
-        if(hanghoa != null){
-            //tim khu vu can luan chuyen va het ton
-            var req = new NhaThuocReq();
-            req.setCityId(hanghoa.getCitiId());
-            req.setRegionId(hanghoa.getRegionId());
-            req.setWardId(hanghoa.getWardId());
-            var cs = nhaThuocsRepository.findByCityIdAndRegionIdAndWardIdAndHoatDong(
-                    hanghoa.getCitiId(),
-                    hanghoa.getRegionId(),
-                    hanghoa.getWardId(),
-                    true);
-            if(cs != null){
-                //lay ra ma cs
-                var codes = cs.stream().filter(x->x.getMaNhaThuoc() != hanghoa.getMaCoSo())
-                        .map(x->x.getMaNhaThuoc()).toArray();
-                //lay ra nhung thuoc thuoc co so do
-                var drugs = thuocsRepository.findByGroupIdMappingAndRecordStatusIDAndNhaThuocMaNhaThuocIn
-                        (Long.valueOf(hanghoa.getThuocId()),
-                                (int) RecordStatusContains.ACTIVE,
-                                codes);
-                if(drugs != null){
-                    var drugIds = drugs.stream().map(x->x.getId()).toArray();
-                    //lấy ra thuốc id còn tồn
-                    var inventories = inventoryRepository.findByDrugIDInAndRecordStatusIDAndLastValueLessThan(
-                            drugIds, (int)RecordStatusContains.ACTIVE, 5
-                    );
-                    if(inventories != null){
-                        var csNhanTB = inventories.stream().map(x->x.getDrugStoreID()).toList();
-                        //tao thong bao cho tung cs lan can
-                        var thuoc = thuocsRepository.findById(Long.valueOf(hanghoa.getThuocId()));
-                        var content = String.format("Cơ sở %s địa chỉ %s có mặt hàng %s cần luân chuyển, nếu bạn quan tâm click vào để xem chi tiết",
-                                hanghoa.getTenCoSo(), hanghoa.getDiaChi(), thuoc.get().getTenThuoc());
-                        csNhanTB.forEach(x->{
-                            Notification notification = new Notification();
-                            notification.setDrugStoreId(x);
-                            notification.setContents(content);
-                            notification.setTitle(content);
-                            notification.setLink("http://10.0.2.140/transfer/hang-luan-chuyen/list?id=" + hanghoa.getId());
-                            notification.setResourceID(0);
-                            notification.setStoreId(0);
-                            notification.setCreateDate(new Date());
-                            notification.setNotificationTypeID(NotificationContains.THONG_BAO_LIEN_MINH);
-                            notificationRepository.save(notification);
-                        });
+    public void sendNotificationToCS(List<Long> ids){
+        ids.forEach(id->{
+            var hanghoa = luanChuyenRepository.findById(id).get();
+            if(hanghoa != null){
+                //tim khu vu can luan chuyen va het ton
+                var req = new NhaThuocReq();
+                req.setCityId(hanghoa.getCitiId());
+                req.setRegionId(hanghoa.getRegionId());
+                req.setWardId(hanghoa.getWardId());
+                var cs = nhaThuocsRepository.findByCityIdAndRegionIdAndWardIdAndHoatDong(
+                        hanghoa.getCitiId(),
+                        hanghoa.getRegionId(),
+                        hanghoa.getWardId(),
+                        true);
+                if(cs != null){
+                    //lay ra ma cs
+                    var codes = cs.stream().filter(x->x.getMaNhaThuoc() != hanghoa.getMaCoSo())
+                            .map(x->x.getMaNhaThuoc()).toArray();
+                    //lay ra nhung thuoc thuoc co so do
+                    var drugs = thuocsRepository.findByGroupIdMappingAndRecordStatusIDAndNhaThuocMaNhaThuocIn
+                            (Long.valueOf(hanghoa.getThuocId()),
+                                    (int) RecordStatusContains.ACTIVE,
+                                    codes);
+                    if(drugs != null){
+                        var drugIds = drugs.stream().map(x->x.getId()).toArray();
+                        //lấy ra thuốc id còn tồn
+                        var inventories = inventoryRepository.findByDrugIDInAndRecordStatusIDAndLastValueLessThan(
+                                drugIds, (int)RecordStatusContains.ACTIVE, 5
+                        );
+                        if(inventories != null){
+                            var csNhanTB = inventories.stream().map(x->x.getDrugStoreID()).toList();
+                            //tao thong bao cho tung cs lan can
+                            var thuoc = thuocsRepository.findById(Long.valueOf(hanghoa.getThuocId()));
+                            var content = String.format("Cơ sở %s địa chỉ %s có mặt hàng %s cần luân chuyển, nếu bạn quan tâm click vào để xem chi tiết",
+                                    hanghoa.getTenCoSo(), hanghoa.getDiaChi(), thuoc.get().getTenThuoc());
+                            csNhanTB.forEach(x->{
+                                Notification notification = new Notification();
+                                notification.setDrugStoreId(x);
+                                notification.setContents(content);
+                                notification.setTitle(content);
+                                notification.setLink("http://10.0.2.140/transfer/hang-luan-chuyen/list?id=" + hanghoa.getId());
+                                notification.setResourceID(0);
+                                notification.setStoreId(0);
+                                notification.setCreateDate(new Date());
+                                notification.setNotificationTypeID(NotificationContains.THONG_BAO_LIEN_MINH);
+                                notificationRepository.save(notification);
+                            });
+                        }
                     }
                 }
             }
-        }
+        });
+
     }
 }
