@@ -9,8 +9,11 @@ import org.springframework.data.repository.query.Param;
 import vn.com.gsoft.consumer.entity.NhaThuocs;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface NhaThuocsRepository extends CrudRepository<NhaThuocs, Long> {
     List<NhaThuocs> findByCityIdAndRegionIdAndWardIdAndHoatDong(Long citiId, Long regionId, Long wardId, boolean hoatDong);
+
+    Optional<NhaThuocs> findByMaNhaThuoc(String maNhaThuoc);
 }

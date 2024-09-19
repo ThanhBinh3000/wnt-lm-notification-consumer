@@ -7,8 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vn.com.gsoft.consumer.constant.NotificationContains;
 import vn.com.gsoft.consumer.constant.RecordStatusContains;
+import vn.com.gsoft.consumer.entity.ChiTietHangHoaLuanChuyen;
 import vn.com.gsoft.consumer.entity.Notification;
+import vn.com.gsoft.consumer.model.dto.DataType;
 import vn.com.gsoft.consumer.model.dto.NhaThuocReq;
+import vn.com.gsoft.consumer.model.dto.NhaThuocRes;
 import vn.com.gsoft.consumer.model.dto.WrapData;
 import vn.com.gsoft.consumer.model.system.NhaThuocs;
 import vn.com.gsoft.consumer.model.system.Profile;
@@ -17,6 +20,7 @@ import vn.com.gsoft.consumer.repository.feign.NhaThuocFeign;
 import vn.com.gsoft.consumer.repository.feign.UserProfileFeign;
 import vn.com.gsoft.consumer.service.NotificationService;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +39,8 @@ public class NotificationServiceImpl implements NotificationService {
     ThuocsRepository thuocsRepository;
     @Autowired
     NhaThuocsRepository nhaThuocsRepository;
+    @Autowired
+    ChiTietHangHoaLuanChuyenRepository chiTietHangHoaLuanChuyenRepository;
 
 
     public List<NhaThuocs> searchListNhaThuocByArea(NhaThuocReq req) {
@@ -44,16 +50,27 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void getDataKafka(String payload) {
+    public void getDataSendNotificationAllKafka(String payload) {
         Gson gson = new Gson();
-        TypeToken<WrapData<List<Long>>> typeToken = new TypeToken<>() {};
-        WrapData<List<Long>> data = gson.fromJson(payload, typeToken.getType());
-        var ids = data.getData();
-        sendNotificationToCS(ids);
-
+        TypeToken<WrapData<DataType>> typeToken = new TypeToken<>() {};
+        WrapData<DataType> data = gson.fromJson(payload, typeToken.getType());
+        var ids = data.getData().getIds();
+        switch (data.getData().getType()){
+            case NotificationContains.THONG_BAO_LIEN_MINH ->  {
+                sendNotificationToCS(Arrays.stream(ids).toList());
+                break;
+            }
+            case NotificationContains.YEU_CAU_THONG_TIN ->  {
+                sendNotificationYeuCau(ids[0]);
+                break;
+            }
+            case NotificationContains.PHAN_HOI_THONG_TIN ->  {
+                sendNotificationPhanHoi(ids[0]);
+                break;
+            }
+        }
     }
 
-    @Override
     public void sendNotificationToCS(List<Long> ids){
         ids.forEach(id->{
             var hanghoa = luanChuyenRepository.findById(id).get();
@@ -94,7 +111,7 @@ public class NotificationServiceImpl implements NotificationService {
                                 notification.setDrugStoreId(x);
                                 notification.setContents(content);
                                 notification.setTitle(content);
-                                notification.setLink("http://10.0.2.140/transfer/hang-luan-chuyen/list?id=" + hanghoa.getId());
+                                notification.setLink("/transfer/hang-luan-chuyen/list?id=" + hanghoa.getId());
                                 notification.setResourceID(0);
                                 notification.setStoreId(0);
                                 notification.setCreateDate(new Date());
@@ -107,5 +124,43 @@ public class NotificationServiceImpl implements NotificationService {
             }
         });
 
+    }
+
+    public void sendNotificationYeuCau(long id){
+        var ctGD = chiTietHangHoaLuanChuyenRepository.findById(id);
+        if(ctGD.isEmpty()) return;
+        var nhaThuoc = nhaThuocsRepository.findByMaNhaThuoc(ctGD.get().getMaCoSoNhan());
+        var thuoc = thuocsRepository.findById(Long.valueOf(ctGD.get().getThuocId()));
+        var content = String.format("Cơ sở %s địa chỉ %s đang quan tâm mặt hàng %s muốn bạn cung cấp thông tin liên hệ, click vào để xem chi tiết",
+                nhaThuoc.get().getTenNhaThuoc(), nhaThuoc.get().getDiaChi(), thuoc.get().getTenThuoc());
+        Notification notification = new Notification();
+        notification.setDrugStoreId(ctGD.get().getMaCoSoGui());
+        notification.setContents(content);
+        notification.setTitle(content);
+        notification.setLink("/transfer/hang-luan-chuyen/list?tab=2");
+        notification.setResourceID(0);
+        notification.setStoreId(0);
+        notification.setCreateDate(new Date());
+        notification.setNotificationTypeID(NotificationContains.THONG_BAO_LIEN_MINH);
+        notificationRepository.save(notification);
+    }
+
+    public void sendNotificationPhanHoi(long id){
+        var ctGD = chiTietHangHoaLuanChuyenRepository.findById(id);
+        if(ctGD.isEmpty()) return;
+        var nhaThuoc = nhaThuocsRepository.findByMaNhaThuoc(ctGD.get().getMaCoSoGui());
+        var thuoc = thuocsRepository.findById(Long.valueOf(ctGD.get().getThuocId()));
+        var content = String.format("Cơ sở %s địa chỉ %s có mặt hàng %s đã đồng ý cung cấp thông tin, click vào để xem chi tiết",
+                nhaThuoc.get().getTenNhaThuoc(), nhaThuoc.get().getDiaChi(), thuoc.get().getTenThuoc());
+        Notification notification = new Notification();
+        notification.setDrugStoreId(ctGD.get().getMaCoSoNhan());
+        notification.setContents(content);
+        notification.setTitle(content);
+        notification.setLink("/transfer/hang-luan-chuyen/list?tab=2");
+        notification.setResourceID(0);
+        notification.setStoreId(0);
+        notification.setCreateDate(new Date());
+        notification.setNotificationTypeID(NotificationContains.THONG_BAO_LIEN_MINH);
+        notificationRepository.save(notification);
     }
 }

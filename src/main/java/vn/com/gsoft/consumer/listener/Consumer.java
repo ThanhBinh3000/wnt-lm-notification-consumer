@@ -76,7 +76,7 @@ public class Consumer {
                 case JobConstant.GIAO_DICH:
                     break;
                 case JobConstant.THONG_BAO:
-                    notificationService.getDataKafka(payload);
+                    notificationService.getDataSendNotificationAllKafka(payload);
                     break;
                 default:
                     log.error("Mã code chưa đuược cấu hình");
