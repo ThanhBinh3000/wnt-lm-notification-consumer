@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vn.com.gsoft.consumer.constant.NotificationContains;
 import vn.com.gsoft.consumer.constant.RecordStatusContains;
+import vn.com.gsoft.consumer.constant.StatusLuanChuyenContains;
 import vn.com.gsoft.consumer.entity.ChiTietHangHoaLuanChuyen;
 import vn.com.gsoft.consumer.entity.Notification;
 import vn.com.gsoft.consumer.model.dto.DataType;
@@ -150,8 +151,15 @@ public class NotificationServiceImpl implements NotificationService {
         if(ctGD.isEmpty()) return;
         var nhaThuoc = nhaThuocsRepository.findByMaNhaThuoc(ctGD.get().getMaCoSoGui());
         var thuoc = thuocsRepository.findById(Long.valueOf(ctGD.get().getThuocId()));
-        var content = String.format("Cơ sở %s địa chỉ %s có mặt hàng %s đã đồng ý cung cấp thông tin, click vào để xem chi tiết",
-                nhaThuoc.get().getTenNhaThuoc(), nhaThuoc.get().getDiaChi(), thuoc.get().getTenThuoc());
+        var content = "";
+        if(ctGD.get().getTrangThai() == StatusLuanChuyenContains.DANG_XU_LY){
+            content = String.format("Cơ sở %s địa chỉ %s có mặt hàng %s đã đồng ý cung cấp thông tin, click vào để xem chi tiết",
+                    nhaThuoc.get().getTenNhaThuoc(), nhaThuoc.get().getDiaChi(), thuoc.get().getTenThuoc());
+        }else {
+            content = String.format("Cơ sở %s địa chỉ %s có mặt hàng %s đã từ chối cung cấp thông tin, click vào để xem chi tiết",
+                    nhaThuoc.get().getTenNhaThuoc(), nhaThuoc.get().getDiaChi(), thuoc.get().getTenThuoc());
+        }
+
         Notification notification = new Notification();
         notification.setDrugStoreId(ctGD.get().getMaCoSoNhan());
         notification.setContents(content);
