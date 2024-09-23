@@ -138,7 +138,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setDrugStoreId(ctGD.get().getMaCoSoGui());
         notification.setContents(content);
         notification.setTitle(content);
-        notification.setLink("/transfer/hang-luan-chuyen/list?tab=2");
+        notification.setLink("/transfer/hang-luan-chuyen/list?tab=3");
         notification.setResourceID(0);
         notification.setStoreId(0);
         notification.setCreateDate(new Date());
