@@ -152,19 +152,22 @@ public class NotificationServiceImpl implements NotificationService {
         var nhaThuoc = nhaThuocsRepository.findByMaNhaThuoc(ctGD.get().getMaCoSoGui());
         var thuoc = thuocsRepository.findById(Long.valueOf(ctGD.get().getThuocId()));
         var content = "";
+        var tab = 0;
         if(ctGD.get().getTrangThai() == StatusLuanChuyenContains.DANG_XU_LY){
             content = String.format("Cơ sở %s địa chỉ %s có mặt hàng %s đã đồng ý cung cấp thông tin, click vào để xem chi tiết",
                     nhaThuoc.get().getTenNhaThuoc(), nhaThuoc.get().getDiaChi(), thuoc.get().getTenThuoc());
+            tab = 3;
         }else {
             content = String.format("Cơ sở %s địa chỉ %s có mặt hàng %s đã từ chối cung cấp thông tin, click vào để xem chi tiết",
                     nhaThuoc.get().getTenNhaThuoc(), nhaThuoc.get().getDiaChi(), thuoc.get().getTenThuoc());
+            tab = 2;
         }
 
         Notification notification = new Notification();
         notification.setDrugStoreId(ctGD.get().getMaCoSoNhan());
         notification.setContents(content);
         notification.setTitle(content);
-        notification.setLink("/transfer/hang-luan-chuyen/list?tab=2");
+        notification.setLink("/transfer/hang-luan-chuyen/list?tab=" +  tab);
         notification.setResourceID(0);
         notification.setStoreId(0);
         notification.setCreateDate(new Date());
