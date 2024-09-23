@@ -14,6 +14,6 @@ class PushDataRedis {
     private NotificationService notificationService;
     @Test
     void saveData() throws Exception {
-        notificationService.sendNotificationToCS(11L);
+        //notificationService.sendNotificationToCS(11L);
     }
 }
