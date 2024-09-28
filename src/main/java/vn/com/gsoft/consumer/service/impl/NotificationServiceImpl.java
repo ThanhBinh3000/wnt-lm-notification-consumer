@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import vn.com.gsoft.consumer.constant.NotificationContains;
 import vn.com.gsoft.consumer.constant.RecordStatusContains;
@@ -42,6 +43,8 @@ public class NotificationServiceImpl implements NotificationService {
     NhaThuocsRepository nhaThuocsRepository;
     @Autowired
     ChiTietHangHoaLuanChuyenRepository chiTietHangHoaLuanChuyenRepository;
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
 
     public List<NhaThuocs> searchListNhaThuocByArea(NhaThuocReq req) {
@@ -50,7 +53,6 @@ public class NotificationServiceImpl implements NotificationService {
         return null;
     }
 
-    @Override
     public void getDataSendNotificationAllKafka(String payload) {
         Gson gson = new Gson();
         TypeToken<WrapData<DataType>> typeToken = new TypeToken<>() {};
@@ -70,6 +72,7 @@ public class NotificationServiceImpl implements NotificationService {
                 break;
             }
         }
+        messagingTemplate.convertAndSend("/topic/notifications", "call api");
     }
 
     public void sendNotificationToCS(List<Long> ids){
