@@ -29,27 +29,29 @@ public class Profile implements UserDetails, Serializable {
     private Long id;
 
     private String fullName;
-
-
-    private NhaThuocs nhaThuoc;
-
     private List<Role> roles;
+    private String maCoSo;
+    private Long citiId;
+    private Long regionId;
+    private Long wardId;
+    private String tenNhaThuoc;
+    private String soDienThoai;
+    private String diaChi;
+    private Boolean isAdmin;
+    private Integer soCoSo;
+    private String maNhaCha;
 
-    private List<NhaThuocs> nhaThuocs;
-    private List<Settings> settings;
-    private List<ApplicationSetting> applicationSettings;
 
+    public Profile(Long id, String fullName,
+                   String username, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired,
+                   boolean accountNonLocked, Set<CodeGrantedAuthority> authorities,
+                   String maCoSo, long citiId, long regionId, long wardId,
+                   String tenNhaThuoc, String soDienThoai, String diaChi,
+                   Boolean isAdmin, Integer soCoSo, String maNhaCha
 
-    public Profile(Long id, String fullName, NhaThuocs nhaThuoc, List<Role> roles, List<NhaThuocs> nhaThuocs,
-                   String username, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Set<CodeGrantedAuthority> authorities,
-                   List<Settings> settings,
-                   List<ApplicationSetting> applicationSettings
     ) {
         this.id = id;
         this.fullName = fullName;
-        this.nhaThuoc = nhaThuoc;
-        this.roles = roles;
-        this.nhaThuocs = nhaThuocs;
         this.username = username;
         this.password = password;
         this.enabled = enabled;
@@ -57,7 +59,15 @@ public class Profile implements UserDetails, Serializable {
         this.credentialsNonExpired = credentialsNonExpired;
         this.accountNonLocked = accountNonLocked;
         this.authorities = authorities;
-        this.settings = settings;
-        this.applicationSettings = applicationSettings;
+        this.maCoSo = maCoSo;
+        this.citiId = citiId;
+        this.regionId = regionId;
+        this.wardId = wardId;
+        this.tenNhaThuoc = tenNhaThuoc;
+        this.soDienThoai = soDienThoai;
+        this.diaChi = diaChi;
+        this.isAdmin = isAdmin;
+        this.soCoSo = soCoSo;
+        this.maNhaCha = maNhaCha;
     }
 }
